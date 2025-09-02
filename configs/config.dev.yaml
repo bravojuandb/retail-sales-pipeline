@@ -1,0 +1,17 @@
+inputs:
+  raw_path: "data/raw/2024.csv"
+
+outputs:
+  clean_dir: "data/clean/"
+
+format:
+  delimiter: ","
+  decimal: ","
+  thousands: "."
+  date_format: "%d/%m/%Y"
+
+storage:
+  use_s3: false
+  s3_bucket: "juanbravo-annual-delivery-notes"
+  s3_prefix_raw: "raw/"
+  s3_prefix_clean: "clean/"
