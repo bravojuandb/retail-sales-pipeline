@@ -5,7 +5,7 @@ outputs:
   clean_dir: "data/clean/"
 
 format:
-  delimiter: ","
+  delimiter: ";"
   decimal: ","
   thousands: "."
   date_format: "%d/%m/%Y"
