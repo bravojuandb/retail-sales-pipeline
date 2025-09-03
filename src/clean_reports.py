@@ -1,9 +1,10 @@
 """
 This includes the following transforming functions:
  1. read_reports -> DONE
- 2. clean_reports
- 3. write_parquet
- 3. validate_schema
+ 2. clean_reports -> DONE
+ 3. validate_schema -> DONE
+ 4. write_parquet -> DONE
+ 5. main -> DONE
 
 """
 import yaml
@@ -32,13 +33,13 @@ def read_reports(
         dtype=str
         )
 
-def clean_reports(df: pd.DataFrame) -> pd.DataFrame:
+def clean_reports(df: pd.DataFrame, *, date_fmt: str) -> pd.DataFrame:
     out = df.copy()
 
     # 1. Date
     out["date"] = pd.to_datetime(
         out["date"],
-        format="%d/%m/%Y",
+        format=date_fmt,
         errors="raise")
 
     # 2. Floats (money amounts)
@@ -90,10 +91,10 @@ def main():
         thousands=fmt["thousands"],
     )
     
-    required = ["date","amount","vat","total","delivery_note","customer_id","invoice_num"]
+    required = cfg["schema"]["required_columns"]
     validate_schema(df, required)
 
-    cleaned_df = clean_reports(df)
+    cleaned_df = clean_reports(df, date_fmt=fmt["date_format"])
     out_path = write_parquet(cleaned_df, clean_path)
     print(cleaned_df.head(10))
     print(cleaned_df.dtypes)
