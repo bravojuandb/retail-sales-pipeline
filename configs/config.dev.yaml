@@ -1,5 +1,5 @@
 inputs:
-  raw_path: "data/raw/2024.csv"
+  raw_path: "data/raw/sample_report.csv"
 
 outputs:
   clean_dir: "data/clean/"
