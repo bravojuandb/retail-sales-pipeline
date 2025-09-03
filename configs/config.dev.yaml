@@ -10,6 +10,16 @@ format:
   thousands: "."
   date_format: "%d/%m/%Y"
 
+schema:
+  required_columns:
+    - date
+    - amount
+    - vat
+    - total
+    - delivery_note
+    - customer_id
+    - invoice_num
+
 storage:
   use_s3: false
   s3_bucket: "juanbravo-annual-delivery-notes"
