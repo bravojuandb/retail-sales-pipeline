@@ -70,11 +70,14 @@ def validate_schema(df: pd.DataFrame, required: Iterable[str]) -> None:
 def write_parquet(
     df: pd.DataFrame, 
     out_dir: Path, 
-    base_name: str = "reports_clean.parquet"
+    base_name: str
 ) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / base_name
-    df.to_parquet(out_path, index=False)
+    df.to_parquet(out_path,
+                  index=False,
+                  engine="pyarrow",
+                  compression="snappy")
     return out_path
 
 
@@ -95,9 +98,16 @@ def main():
     validate_schema(df, required)
 
     cleaned_df = clean_reports(df, date_fmt=fmt["date_format"])
-    out_path = write_parquet(cleaned_df, clean_path)
+    print("Pandas DataFrame check:")
     print(cleaned_df.head(10))
     print(cleaned_df.dtypes)
+
+    base_name = f"{raw_path.stem}_clean.parquet"
+    out_path = write_parquet(cleaned_df, clean_path, base_name=base_name)
+    check_df = pd.read_parquet(out_path, engine="pyarrow")
+    print("Parquet read-back check:")
+    print(check_df.head())
+
     print(f"Rows cleaned: {len(cleaned_df)} → {out_path}")
 
 if __name__ == "__main__":
