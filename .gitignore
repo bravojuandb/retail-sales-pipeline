@@ -210,4 +210,4 @@ __marimo__/
 2024.csv
 notes.md
 .env
-reports_clean.parquet
+data/clean/*_clean.parquet
