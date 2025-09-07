@@ -105,11 +105,11 @@ NOTE: The S3 bucket is already created and will be connected in future steps.
 - Raw: private S3 bucket with `raw/` layout (manual upload).
 - Clean: `clean_invoices.py` reads raw (EU formats), parses dates, fixes dtypes, writes Parquet to `clean/`.
 - README: problem, architecture (raw → clean), how to run locally with a sample file.
+- Logging: INFO-level start/end + rows in/out.
 
 ### 🚧 In progress
 - Analysis: Jupyter notebook with top customers, monthly revenue trend, refunds (negative totals).
 - Tests: basic pytest checks (date parsing, decimals/thousands, schema).
-- Logging: INFO-level start/end + rows in/out.
 - Connect to S3 bucket to analyze the full report.
 
 ### 🚀 Plus

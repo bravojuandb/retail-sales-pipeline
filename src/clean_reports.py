@@ -11,6 +11,15 @@ import yaml
 import pandas as pd
 from pathlib import Path
 from typing import Iterable
+import logging
+import time
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 def load_config(path: Path) -> dict:
     with open(path, "r") as f:
@@ -82,6 +91,9 @@ def write_parquet(
 
 
 def main():
+    start_time = time.perf_counter()
+    logger.info("Pipeline started")
+
     cfg = load_config(Path("configs/config.dev.yaml"))
     raw_path = Path(cfg["inputs"]["raw_path"])
     clean_path = Path(cfg["outputs"]["clean_dir"])
@@ -93,22 +105,24 @@ def main():
         decimal=fmt["decimal"],
         thousands=fmt["thousands"],
     )
-    
+    logger.info("Rows in: %d", len(df))
+
     required = cfg["schema"]["required_columns"]
     validate_schema(df, required)
 
     cleaned_df = clean_reports(df, date_fmt=fmt["date_format"])
-    print("Pandas DataFrame check:")
-    print(cleaned_df.head(10))
-    print(cleaned_df.dtypes)
+    logger.info("Rows out: %d", len(cleaned_df))
 
     base_name = f"{raw_path.stem}_clean.parquet"
     out_path = write_parquet(cleaned_df, clean_path, base_name=base_name)
     check_df = pd.read_parquet(out_path, engine="pyarrow")
-    print("Parquet read-back check:")
-    print(check_df.head())
 
-    print(f"Rows cleaned: {len(cleaned_df)} → {out_path}")
+    logger.info("Wrote cleaned parquet | path=%s rows=%d", out_path, len(cleaned_df))
+    logger.info("Parquet read-back OK | rows=%d cols=%d", len(check_df), check_df.shape[1])
+
+    elapsed = time.perf_counter() - start_time
+    logger.info("Pipeline finished in %.2f seconds", elapsed)
+  
 
 if __name__ == "__main__":
     main()
