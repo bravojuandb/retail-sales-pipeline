@@ -70,6 +70,8 @@ RETAIL-SALES-PIPELINE
 ├── data/                 # raw/ and clean/ layers
 ├── src/clean_reports.py  # core pipeline script
 ├── tests/                # (to come)
+├── notebooks/            # Jupyter notebook for analysis
+├── gallery/              # Diverse screenshots
 ├── requirements.txt
 └── README.md
 ```
@@ -107,9 +109,9 @@ NOTE: The S3 bucket is already created and will be connected in future steps.
 - README: problem, architecture (raw → clean), how to run locally with a sample file.
 - Logging: INFO-level start/end + rows in/out.
 - Tests: basic pytest checks (date parsing, decimals/thousands, schema).
+- Analysis: Jupyter notebook with top customers, monthly revenue trend, refunds (negative totals).
 
 ### 🚧 In progress
-- Analysis: Jupyter notebook with top customers, monthly revenue trend, refunds (negative totals).
 - Connect to S3 bucket to analyze the full report.
 
 ### 🚀 Plus
