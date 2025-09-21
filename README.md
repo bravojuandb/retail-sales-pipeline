@@ -65,15 +65,21 @@ Tip: Codespaces already has Python preinstalled. You can still use a venv if you
 ## Project Layout
 
 ```
-RETAIL-SALES-PIPELINE
-├── configs/              # YAML configs (dev/prod)
-├── data/                 # raw/ and clean/ layers
-├── src/clean_reports.py  # core pipeline script
-├── tests/                # (to come)
-├── notebooks/            # Jupyter notebook for analysis
-├── gallery/              # Diverse screenshots
-├── requirements.txt
-└── README.md
+RETAIL-SALES-PIPELINE/
+├── configs/             # YAML configs for environment settings
+├── data/
+│   ├── raw/             # Original CSVs
+│   └── clean/           # Processed Parquet files
+├── src/
+│   └── clean_reports.py # Data cleaning & transformation
+├── tests/               # Unit tests for pipeline functions
+├── notebooks/           # Jupyter notebook for exploration and analysis
+├── gallery/             # Screenshots
+├── requirements.txt     # Python dependencies
+├── README.md
+├── .env.example         # Example environment variables 
+├── .gitignore
+└── LICENSE              # License file
 ```
 
 ## Configuration
@@ -96,8 +102,8 @@ schema:
 storage: 
   use_s3: false
   s3_bucket: "juanbravo-annual-delivery-notes"
-  s3_prefix_raw: "raw/"
-  s3_prefix_clean: "clean/"
+  s3_prefix_raw: "raw_data/"
+  s3_prefix_clean: "clean_data/"
 ```
 NOTE: The S3 bucket is already created and will be connected in future steps.
 
