@@ -21,7 +21,7 @@ schema:
     - invoice_num
 
 storage:
-  use_s3: false
+  use_s3: true
   s3_bucket: "juanbravo-annual-delivery-notes"
-  s3_prefix_raw: "raw/"
-  s3_prefix_clean: "clean/"
+  s3_prefix_raw: "raw_data/"
+  s3_prefix_clean: "clean_data/"
