@@ -211,3 +211,5 @@ __marimo__/
 notes.md
 .env
 data/clean/*_clean.parquet
+
+sample_s3
