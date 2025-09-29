@@ -1,8 +1,9 @@
 # Retail Sales Pipeline
 
-A minimal data pipeline that **ingests** raw European-style retail reports (CSV), 
-**parses** dates and monetary values into international formats, and **persists** 
-query-ready Parquet files in a clean/ layer.
+A minimal data pipeline that  
+- **ingests** raw European-style retail reports (CSV) from local storage or the cloud (s3),  
+- **parses** dates and monetary values into international formats, and  
+- **persists** query-ready Parquet files in a clean/ layer locally or in S3
 
 [Sample Data](data/raw/sample_report.csv) structure:
 
@@ -59,8 +60,13 @@ Tip: Codespaces already has Python preinstalled. You can still use a venv if you
 ## Output: 
 
 - data/clean/sample_report_clean.parquet.  
-- console preview of cleaned DataFrame + dtypes.  
-- read-back check confirms the Parquet file is valid.  
+
+- Check this quick [*Analysis*](notebooks/analysis.ipynb) of the original dataset:
+
+  - Summary
+  - Top customers
+  - Monthly revenue
+  - Top Refunds
 
 ## Project Layout
 
@@ -79,7 +85,7 @@ RETAIL-SALES-PIPELINE/
 ├── README.md
 ├── .env.example         # Example environment variables 
 ├── .gitignore
-└── LICENSE              # License file
+└── LICENSE
 ```
 
 ## Configuration
@@ -105,22 +111,20 @@ storage:
   s3_prefix_raw: "raw_data/"
   s3_prefix_clean: "clean_data/"
 ```
-NOTE: The S3 bucket is already created and will be connected in future steps.
 
 ## Project Roadmap
 
-### ✅ Core
-- Raw: private S3 bucket with `raw/` layout (manual upload).
-- Clean: `clean_invoices.py` reads raw (EU formats), parses dates, fixes dtypes, writes Parquet to `clean/`.
-- README: problem, architecture (raw → clean), how to run locally with a sample file.
-- Logging: INFO-level start/end + rows in/out.
-- Tests: basic pytest checks (date parsing, decimals/thousands, schema).
-- Analysis: Jupyter notebook with top customers, monthly revenue trend, refunds (negative totals).
+### Core
+- ✅ Raw: private S3 bucket with `raw/` layout (manual upload).
+- ✅ Clean: `clean_reports.py` reads raw (EU formats), parses dates, fixes dtypes, writes Parquet to `clean/`.
+- ✅ README: problem, architecture (raw → clean), how to run locally with a sample file.
+- ✅ Logging: INFO-level start/end + rows in/out.
+- ✅ Tests: basic pytest checks (date parsing, decimals/thousands, schema).
+- ✅ Analysis: Jupyter notebook with top customers, monthly revenue trend, refunds (negative totals).
+- ✅ AWS s3: read/write the full report in the cloud.
 
-### 🚧 In progress
-- Connect to S3 bucket to analyze the full report.
 
-### 🚀 Plus
+### Plus
 - CLI (argparse): commands for `read` (schema + row count) and `clean` (write Parquet).
 - CI (GitHub Actions): install deps, run tests, lint (`ruff`).
 - Database integration: load cleaned table into Postgres, with one SQL query saved as `.sql`.
