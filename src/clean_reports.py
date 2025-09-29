@@ -7,12 +7,14 @@ This includes the following transforming functions:
  5. main -> DONE
 
 """
+import os
 import yaml
 import pandas as pd
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional, Union
 import logging
 import time
+from dotenv import load_dotenv
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,21 +28,56 @@ def load_config(path: Path) -> dict:
         cfg = yaml.safe_load(f)
     return cfg
 
+def storage_options_from_env() -> dict:
+    opts = {}
+    if os.getenv("AWS_PROFILE"):
+        opts["profile"] = os.getenv("AWS_PROFILE")
+    if os.getenv("AWS_DEFAULT_REGION"):
+        opts["client_kwargs"] = {"region_name": os.getenv("AWS_DEFAULT_REGION")}
+    return opts
+
+def build_paths(cfg: dict) -> tuple[Union[str, Path], Union[str, Path], dict]:
+
+    storage = cfg.get("storage", {})
+    use_s3 = storage.get("use_s3", False)
+
+    raw_path = Path(cfg["inputs"]["raw_path"])
+    base_name = f"{raw_path.stem}_clean.parquet"
+
+    if use_s3:
+        bucket = storage["s3_bucket"]
+        raw_prefix = storage["s3_prefix_raw"].lstrip("/")
+        clean_prefix = storage["s3_prefix_clean"].lstrip("/")
+        src = f"s3://{bucket}/{raw_prefix}{raw_path.name}"
+        dst = f"s3://{bucket}/{clean_prefix}{base_name}"
+        storage_options = storage_options_from_env()
+    else:
+        src = raw_path
+        clean_dir = Path(cfg["outputs"]["clean_dir"])
+        clean_dir.mkdir(parents=True, exist_ok=True)
+        dst = clean_dir / base_name
+        storage_options = {}
+
+    return src, dst, storage_options
+
+
 
 def read_reports(
-    file: Path,
+    file: Union[str, Path],
     *,
     delimiter: str,
     decimal: str,
-    thousands: str
+    thousands: str,
+    storage_options: Optional[dict] = None,
 ) -> pd.DataFrame:
     return pd.read_csv(
-        file, 
+        file,
         delimiter=delimiter,
         decimal=decimal,
         thousands=thousands,
-        dtype=str
-        )
+        dtype=str,
+        storage_options=storage_options,  # <- enables s3://
+    )
 
 def clean_reports(df: pd.DataFrame, *, date_fmt: str) -> pd.DataFrame:
     out = df.copy()
@@ -77,33 +114,37 @@ def validate_schema(df: pd.DataFrame, required: Iterable[str]) -> None:
         raise ValueError(f"Missing required columns: {missing}")
     
 def write_parquet(
-    df: pd.DataFrame, 
-    out_dir: Path, 
-    base_name: str
-) -> Path:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / base_name
-    df.to_parquet(out_path,
-                  index=False,
-                  engine="pyarrow",
-                  compression="snappy")
+    df: pd.DataFrame,
+    out_path: Union[str, Path],
+    *,
+    storage_options: Optional[dict] = None,
+) -> Union[str, Path]:
+    df.to_parquet(
+        out_path,
+        index=False,
+        engine="pyarrow",
+        compression="snappy",
+        storage_options=storage_options,
+    )
     return out_path
 
-
 def main():
+    load_dotenv()
     start_time = time.perf_counter()
     logger.info("Pipeline started")
 
     cfg = load_config(Path("configs/config.dev.yaml"))
-    raw_path = Path(cfg["inputs"]["raw_path"])
-    clean_path = Path(cfg["outputs"]["clean_dir"])
     fmt = cfg["format"]
 
+    src, dst, storage_options = build_paths(cfg)
+
+    logger.info("Reading from: %s", src)
     df = read_reports(
-        raw_path,
+        src,
         delimiter=fmt["delimiter"],
         decimal=fmt["decimal"],
         thousands=fmt["thousands"],
+        storage_options=storage_options,
     )
     logger.info("Rows in: %d", len(df))
 
@@ -113,16 +154,14 @@ def main():
     cleaned_df = clean_reports(df, date_fmt=fmt["date_format"])
     logger.info("Rows out: %d", len(cleaned_df))
 
-    base_name = f"{raw_path.stem}_clean.parquet"
-    out_path = write_parquet(cleaned_df, clean_path, base_name=base_name)
-    check_df = pd.read_parquet(out_path, engine="pyarrow")
+    logger.info("Writing parquet to: %s", dst)
+    out_path = write_parquet(cleaned_df, dst, storage_options=storage_options)
 
-    logger.info("Wrote cleaned parquet | path=%s rows=%d", out_path, len(cleaned_df))
+    check_df = pd.read_parquet(out_path, engine="pyarrow", storage_options=storage_options)
     logger.info("Parquet read-back OK | rows=%d cols=%d", len(check_df), check_df.shape[1])
 
     elapsed = time.perf_counter() - start_time
     logger.info("Pipeline finished in %.2f seconds", elapsed)
-  
 
 if __name__ == "__main__":
     main()
